@@ -36,10 +36,24 @@ class StudentClass
     #[ORM\ManyToMany(targetEntity: Teacher::class, mappedBy: 'studentClass')]
     private Collection $teachers;
 
+    /**
+     * @var Collection<int, Subject>
+     */
+    #[ORM\ManyToMany(targetEntity: Subject::class, inversedBy: 'studentClasses')]
+    private Collection $subject;
+
+    /**
+     * @var Collection<int, Result>
+     */
+    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'studentClass')]
+    private Collection $results;
+
     public function __construct()
     {
         $this->students = new ArrayCollection();
         $this->teachers = new ArrayCollection();
+        $this->subject = new ArrayCollection();
+        $this->results = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -135,6 +149,60 @@ class StudentClass
     {
         if ($this->teachers->removeElement($teacher)) {
             $teacher->removeStudentClass($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Subject>
+     */
+    public function getSubject(): Collection
+    {
+        return $this->subject;
+    }
+
+    public function addSubject(Subject $subject): static
+    {
+        if (!$this->subject->contains($subject)) {
+            $this->subject->add($subject);
+        }
+
+        return $this;
+    }
+
+    public function removeSubject(Subject $subject): static
+    {
+        $this->subject->removeElement($subject);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Result>
+     */
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function addResult(Result $result): static
+    {
+        if (!$this->results->contains($result)) {
+            $this->results->add($result);
+            $result->setStudentClass($this);
+        }
+
+        return $this;
+    }
+
+    public function removeResult(Result $result): static
+    {
+        if ($this->results->removeElement($result)) {
+            // set the owning side to null (unless already changed)
+            if ($result->getStudentClass() === $this) {
+                $result->setStudentClass(null);
+            }
         }
 
         return $this;
