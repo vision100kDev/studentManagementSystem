@@ -2,24 +2,21 @@
 
 namespace App\Entity;
 
-use App\Repository\TermRepository;
+use App\Repository\SubjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TermRepository::class)]
-class Term
+#[ORM\Entity(repositoryClass: SubjectRepository::class)]
+class Subject
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(length: 255)]
     private ?string $name = null;
-
-    #[ORM\Column]
-    private ?bool $isActive = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -28,13 +25,20 @@ class Term
     private ?\DateTimeImmutable $updatedAt = null;
 
     /**
+     * @var Collection<int, StudentClass>
+     */
+    #[ORM\ManyToMany(targetEntity: StudentClass::class, mappedBy: 'subject')]
+    private Collection $studentClasses;
+
+    /**
      * @var Collection<int, Result>
      */
-    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'term')]
+    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'subject')]
     private Collection $results;
 
     public function __construct()
     {
+        $this->studentClasses = new ArrayCollection();
         $this->results = new ArrayCollection();
     }
 
@@ -51,18 +55,6 @@ class Term
     public function setName(string $name): static
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function isActive(): ?bool
-    {
-        return $this->isActive;
-    }
-
-    public function setActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
 
         return $this;
     }
@@ -92,6 +84,33 @@ class Term
     }
 
     /**
+     * @return Collection<int, StudentClass>
+     */
+    public function getStudentClasses(): Collection
+    {
+        return $this->studentClasses;
+    }
+
+    public function addStudentClass(StudentClass $studentClass): static
+    {
+        if (!$this->studentClasses->contains($studentClass)) {
+            $this->studentClasses->add($studentClass);
+            $studentClass->addSubject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStudentClass(StudentClass $studentClass): static
+    {
+        if ($this->studentClasses->removeElement($studentClass)) {
+            $studentClass->removeSubject($this);
+        }
+
+        return $this;
+    }
+
+    /**
      * @return Collection<int, Result>
      */
     public function getResults(): Collection
@@ -103,7 +122,7 @@ class Term
     {
         if (!$this->results->contains($result)) {
             $this->results->add($result);
-            $result->setTerm($this);
+            $result->setSubject($this);
         }
 
         return $this;
@@ -113,8 +132,8 @@ class Term
     {
         if ($this->results->removeElement($result)) {
             // set the owning side to null (unless already changed)
-            if ($result->getTerm() === $this) {
-                $result->setTerm(null);
+            if ($result->getSubject() === $this) {
+                $result->setSubject(null);
             }
         }
 

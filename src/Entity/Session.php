@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\TermRepository;
+use App\Repository\SessionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TermRepository::class)]
-class Term
+#[ORM\Entity(repositoryClass: SessionRepository::class)]
+class Session
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -16,7 +16,7 @@ class Term
     private ?int $id = null;
 
     #[ORM\Column(length: 20)]
-    private ?string $name = null;
+    private ?string $session = null;
 
     #[ORM\Column]
     private ?bool $isActive = null;
@@ -30,7 +30,7 @@ class Term
     /**
      * @var Collection<int, Result>
      */
-    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'term')]
+    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'session')]
     private Collection $results;
 
     public function __construct()
@@ -43,14 +43,14 @@ class Term
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getSession(): ?string
     {
-        return $this->name;
+        return $this->session;
     }
 
-    public function setName(string $name): static
+    public function setSession(string $session): static
     {
-        $this->name = $name;
+        $this->session = $session;
 
         return $this;
     }
@@ -103,7 +103,7 @@ class Term
     {
         if (!$this->results->contains($result)) {
             $this->results->add($result);
-            $result->setTerm($this);
+            $result->setSession($this);
         }
 
         return $this;
@@ -113,8 +113,8 @@ class Term
     {
         if ($this->results->removeElement($result)) {
             // set the owning side to null (unless already changed)
-            if ($result->getTerm() === $this) {
-                $result->setTerm(null);
+            if ($result->getSession() === $this) {
+                $result->setSession(null);
             }
         }
 

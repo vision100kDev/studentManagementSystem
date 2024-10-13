@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\StudentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -38,6 +40,17 @@ class Student
     #[ORM\ManyToOne(inversedBy: 'students')]
     #[ORM\JoinColumn(nullable: false)]
     private ?StudentClass $StudentClass = null;
+
+    /**
+     * @var Collection<int, Result>
+     */
+    #[ORM\OneToMany(targetEntity: Result::class, mappedBy: 'student')]
+    private Collection $results;
+
+    public function __construct()
+    {
+        $this->results = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -136,6 +149,36 @@ class Student
     public function setStudentClass(?StudentClass $StudentClass): static
     {
         $this->StudentClass = $StudentClass;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Result>
+     */
+    public function getResults(): Collection
+    {
+        return $this->results;
+    }
+
+    public function addResult(Result $result): static
+    {
+        if (!$this->results->contains($result)) {
+            $this->results->add($result);
+            $result->setStudent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeResult(Result $result): static
+    {
+        if ($this->results->removeElement($result)) {
+            // set the owning side to null (unless already changed)
+            if ($result->getStudent() === $this) {
+                $result->setStudent(null);
+            }
+        }
 
         return $this;
     }
